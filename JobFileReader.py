@@ -116,12 +116,14 @@ else:
             print "Error reading Parameters"
         else:
             len_s = fCon[OffSet:OffSet+2]
+            #Now parse Working dir and other stuff
 #----------------------------------------------------
 TriggerOffset = struct.unpack("H",fCon[22:24])[0]
 if TriggerOffset >= inFSize or TriggerOffset + 2 >= inFSize:
     print "Error reading trigger info"
 else:
-    NumOfTriggers = struct.unpack("H",fCon[TriggerOffset:TriggerOffset+2])[0]
+    NumOfTriggers_s = fCon[TriggerOffset:TriggerOffset+2]
+    NumOfTriggers = struct.unpack("H",NumOfTriggers_s)[0]
     TriggerOffset += 2
     if NumOfTriggers == 0:
         print "Warning: no triggers were found"
@@ -129,12 +131,37 @@ else:
         #loop for reading triggers
         t = 0
         while TriggerOffset < inFSize:
+            print "Trigger #" + str(t+1)
             TriggerSize = struct.unpack("H",fCon[TriggerOffset:TriggerOffset+2])[0]
+            print "TriggerSize: " + str(TriggerSize)
             if TriggerOffset + TriggerSize > inFSize:
                 print "Error reading trigger info #" + str(t)
+                break
             else:
                 TriggerInfo = fCon[TriggerOffset:TriggerOffset+TriggerSize]
-            
+                Resv0 = struct.unpack("H",TriggerInfo[2:4])[0]
+                BeginYear = struct.unpack("H",TriggerInfo[4:6])[0]
+                BeginMonth = struct.unpack("H",TriggerInfo[6:8])[0]
+                BeginDay = struct.unpack("H",TriggerInfo[8:10])[0]
+                print "First Trigger Time/Date: " + str(BeginYear) + ":" + str(BeginMonth) + ":" + str(BeginDay)
+                EndYear = struct.unpack("H",TriggerInfo[10:12])[0]
+                EndMonth = struct.unpack("H",TriggerInfo[12:14])[0]
+                EndDay = struct.unpack("H",TriggerInfo[14:16])[0]
+                print "Last Trigger Time/Date: " + str(EndYear) + ":" + str(EndMonth) + ":" + str(EndDay)
+                StartHour = struct.unpack("H",TriggerInfo[16:18])[0]
+                StartMinute = struct.unpack("H",TriggerInfo[18:20])[0]
+                print "Scheduled Trigger Time: " + str(StartHour) + ":" + str(StartMinute)
+                MinutesDuration = struct.unpack("L",TriggerInfo[20:24])[0]
+                MinutesInterval = struct.unpack("L",TriggerInfo[24:28])[0]
+                Flags = struct.unpack("L",TriggerInfo[28:32])[0]
+                TriggerType = struct.unpack("L",TriggerInfo[32:36])[0]
+                TriggerSpec0 = struct.unpack("H",TriggerInfo[36:38])[0]
+                TriggerSpec1 = struct.unpack("H",TriggerInfo[38:40])[0]
+                TriggerSpec2 = struct.unpack("H",TriggerInfo[40:42])[0]
+                Padding = struct.unpack("H",TriggerInfo[42:44])[0]
+                Resv1 = struct.unpack("H",TriggerInfo[44:46])[0]
+                Resv2 = struct.unpack("H",TriggerInfo[46:48])[0]
+                TriggerOffset += TriggerSize
             t = t + 1
         
 #----------------------------------------------------
