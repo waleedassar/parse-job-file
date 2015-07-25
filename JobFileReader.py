@@ -171,28 +171,36 @@ FormatVersion = struct.unpack("H",fCon[2:4])[0]
 print "Format Version: " + str(hex(FormatVersion))
 #-----------------------------------------------------
 Guid = fCon[4:20]
-print "CLSID: " + PrintGUID(Guid)
+print "Job UUID: " + PrintGUID(Guid)
 #-----------------------------------------------------
 AppNameOffset = struct.unpack("H",fCon[20:22])[0]
-if AppNameOffset >= inFSize or AppNameOffset + 2 >= inFSize:
-    print "Error reading Application name"
-else:
-    len_s = fCon[AppNameOffset:AppNameOffset+2]
-    len_ = ((struct.unpack("H",len_s))[0])*2
-    if AppNameOffset + len_ >= inFSize:
-        print "Error reading application name"
+ListNames = ["Application Name","Parameters","Working Directory","Author","Comment","User Data","Reserved Data"]
+Offset = AppNameOffset
+iCounter = 0
+
+while iCounter < 5:
+    if Offset >= inFSize and Offset + 2 >= inFSize:
+        print "Boundary error while reading " + ListNames[iCounter]
+        break
     else:
-        AppName_ = fCon[AppNameOffset + 2:AppNameOffset + 2 + len_]
-        AppName = AppName_.decode('utf-16')
-        print "Application name: " + AppName
-        OffSet = AppNameOffset + 2 + len_
-        if OffSet >= inFSize or OffSet + 2 >= inFSize:
-            print "Error reading Parameters"
+        len_s = fCon[Offset:Offset+2]
+        len_ = ((struct.unpack("H",len_s))[0])*2
+        Offset += 2
+        if len_ == 0:
+            print ListNames[iCounter] + ": N/A"
         else:
-            len_s = fCon[OffSet:OffSet+2]
-            #Now parse Working dir and other stuff
+            if Offset + len_ >= inFSize:
+                print "Error reading " + ListNames[iCounter]
+            else:
+                uStrXXX = fCon[Offset:Offset + len_]
+                StrXXX = uStrXXX.decode('utf-16')
+                print ListNames[iCounter] + ": " + StrXXX
+                Offset += len_
+    iCounter += 1
+print Offset
 #----------------------------------------------------
 TriggerOffset = struct.unpack("H",fCon[22:24])[0]
+print TriggerOffset
 if TriggerOffset >= inFSize or TriggerOffset + 2 >= inFSize:
     print "Error reading trigger info"
 else:
