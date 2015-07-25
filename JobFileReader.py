@@ -3,14 +3,88 @@ import struct
 
 
 #Takes in binary format and emits String Format
-#def PrintGUID(CLSID):
-#    if len(CLSID)!=16:
-#        return "{invalid}"
-#    
-#    sGuid = "{"
-#    for i in range(0,16):
-#        Byte = CLSID[i]
-        
+def PrintGUID(CLSID):
+    if len(CLSID)!=16:
+        return "{invalid}"
+
+    sGuid = "{"
+    DW = CLSID[0:4]
+    DW0= (hex(ord(DW[0])))[2:]
+    DW1= (hex(ord(DW[1])))[2:]
+    DW2= (hex(ord(DW[2])))[2:]
+    DW3= (hex(ord(DW[3])))[2:]
+    if len(DW3) == 1:
+        sGuid += "0"
+    sGuid += DW3
+    if len(DW2) == 1:
+        sGuid += "0"
+    sGuid += DW2
+    if len(DW1) == 1:
+        sGuid += "0"
+    sGuid += DW1
+    if len(DW0) == 1:
+        sGuid += "0"
+    sGuid += DW0
+    sGuid += "-"
+    W0 = CLSID[4:6]
+    W0_0 = (hex(ord(W0[0])))[2:]
+    W0_1 = (hex(ord(W0[1])))[2:]
+    if len(W0_1) == 1:
+        sGuid += "0"
+    sGuid += W0_1
+    if len(W0_0) == 1:
+        sGuid += "0"
+    sGuid += W0_0
+    sGuid += "-"
+    W1 = CLSID[6:8]
+    W1_0 = (hex(ord(W1[0])))[2:]
+    W1_1 = (hex(ord(W1[1])))[2:]
+    if len(W1_1) == 1:
+        sGuid += "0"
+    sGuid += W1_1
+    if len(W1_0) == 1:
+        sGuid += "0"
+    sGuid += W1_0
+    sGuid += "-"
+    W2 = CLSID[8:10]
+    W2_0 = (hex(ord(W2[0])))[2:]
+    W2_1 = (hex(ord(W2[1])))[2:]
+    if len(W2_1) == 1:
+        sGuid += "0"
+    sGuid += W2_1
+    if len(W2_0) == 1:
+        sGuid += "0"
+    sGuid += W2_0
+    sGuid += "-"
+    Last = CLSID[10:16]
+    Last0 = (hex(ord(Last[0])))[2:]
+    if len(Last0) == 1:
+        sGuid += "0"
+    sGuid += Last0
+    Last1 = (hex(ord(Last[1])))[2:]
+    if len(Last1) == 1:
+        sGuid += "0"
+    sGuid += Last1
+    Last2 = (hex(ord(Last[2])))[2:]
+    if len(Last2) == 1:
+        sGuid += "0"
+    sGuid += Last2
+    Last3 = (hex(ord(Last[3])))[2:]
+    if len(Last3) == 1:
+        sGuid += "0"
+    sGuid += Last3
+    Last4 = (hex(ord(Last[4])))[2:]
+    if len(Last4) == 1:
+        sGuid += "0"
+    sGuid += Last4
+    Last5 = (hex(ord(Last[5])))[2:]
+    if len(Last5) == 1:
+        sGuid += "0"
+    sGuid += Last5
+    sGuid += "}"
+    return sGuid
+    
+    
 
 
 def GetOS(shOS):
@@ -97,7 +171,7 @@ FormatVersion = struct.unpack("H",fCon[2:4])[0]
 print "Format Version: " + str(hex(FormatVersion))
 #-----------------------------------------------------
 Guid = fCon[4:20]
-#print GUID in the proper format here
+print "CLSID: " + PrintGUID(Guid)
 #-----------------------------------------------------
 AppNameOffset = struct.unpack("H",fCon[20:22])[0]
 if AppNameOffset >= inFSize or AppNameOffset + 2 >= inFSize:
@@ -143,18 +217,50 @@ else:
                 BeginYear = struct.unpack("H",TriggerInfo[4:6])[0]
                 BeginMonth = struct.unpack("H",TriggerInfo[6:8])[0]
                 BeginDay = struct.unpack("H",TriggerInfo[8:10])[0]
-                print "First Trigger Time/Date: " + str(BeginYear) + ":" + str(BeginMonth) + ":" + str(BeginDay)
+                #Don't run before
+                print "First Trigger Date: " + str(BeginYear) + ":" + str(BeginMonth) + ":" + str(BeginDay)
                 EndYear = struct.unpack("H",TriggerInfo[10:12])[0]
                 EndMonth = struct.unpack("H",TriggerInfo[12:14])[0]
                 EndDay = struct.unpack("H",TriggerInfo[14:16])[0]
-                print "Last Trigger Time/Date: " + str(EndYear) + ":" + str(EndMonth) + ":" + str(EndDay)
+                #Don't run after
+                print "Last Trigger Date: " + str(EndYear) + ":" + str(EndMonth) + ":" + str(EndDay)
                 StartHour = struct.unpack("H",TriggerInfo[16:18])[0]
                 StartMinute = struct.unpack("H",TriggerInfo[18:20])[0]
                 print "Scheduled Trigger Time: " + str(StartHour) + ":" + str(StartMinute)
                 MinutesDuration = struct.unpack("L",TriggerInfo[20:24])[0]
+                print "MinutesDuration: " + str(MinutesDuration)
                 MinutesInterval = struct.unpack("L",TriggerInfo[24:28])[0]
+                print "MinutesInterval: " + str(MinutesInterval)
+                NumberOfScheduledTimes = 1
+                if MinutesInterval != 0:
+                    NumberOfScheduledTimes+= MinutesDuration/MinutesInterval
+                print "Runs " + str(NumberOfScheduledTimes) + " times."
                 Flags = struct.unpack("L",TriggerInfo[28:32])[0]
+                print "Flags: " + str(hex(Flags))
+                if Flags & 0x80000000:
+                    print "==> TASK_TRIGGER_FLAG_HAS_END_DATE"
+                if Flags & 0x40000000:
+                    print "==> TASK_TRIGGER_FLAG_KILL_AT_DURATION_END"
+                if Flags & 0x20000000:
+                    print "==> TASK_TRIGGER_FLAG_DISABLED"
                 TriggerType = struct.unpack("L",TriggerInfo[32:36])[0]
+                print "TriggerType: " + str(TriggerType)
+                if TriggerType == 0:
+                    print "==> ONCE"
+                elif TriggerType == 1:
+                    print "==> DAILY"
+                elif TriggerType == 2:
+                    print "==> WEEKLY"
+                elif TriggerType == 3:
+                    print "==> MONTHLYDATE"
+                elif TriggerType == 4:
+                    print "==> MONTHLYDOW"
+                elif TriggerType == 5:
+                    print "==> EVENT_ON_IDLE"
+                elif TriggerType == 6:
+                    print "==> EVENT_AT_SYSTEMSTART"
+                elif TriggerType == 7:
+                    print "==> EVENT_AT_LOGON"
                 TriggerSpec0 = struct.unpack("H",TriggerInfo[36:38])[0]
                 TriggerSpec1 = struct.unpack("H",TriggerInfo[38:40])[0]
                 TriggerSpec2 = struct.unpack("H",TriggerInfo[40:42])[0]
