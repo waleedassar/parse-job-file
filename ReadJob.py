@@ -174,7 +174,7 @@ ListNames = ["Application Name","Parameters","Working Directory","Author","Comme
 Offset = AppNameOffset
 iCounter = 0
 
-while iCounter < 5:
+while iCounter < 7:
     if Offset >= inFSize and Offset + 2 >= inFSize:
         print "Boundary error while reading " + ListNames[iCounter]
         break
@@ -189,14 +189,25 @@ while iCounter < 5:
                 print "Boundary error while reading " + ListNames[iCounter]
             else:
                 uStrXXX = fCon[Offset:Offset + len_]
-                StrXXX = uStrXXX.decode('utf-16')
-                print ListNames[iCounter] + ": " + StrXXX
+                if iCounter == 6:
+                    ReservedNull = True
+                    len_ = len_/2
+                    Reserved = uStrXXX
+                    for xxx in range(0,len_):
+                        if Reserved[xxx] != "\x00":
+                            print "Warning: Reserved data is not set to null"
+                            ReservedNull = False
+                            break
+                    if ReservedNull == True:
+                        print ListNames[iCounter] + ": N/A"
+                else:
+                    StrXXX = uStrXXX.decode('utf-16')
+                    StrXXX = StrXXX.rstrip("\x00").lstrip("\x00")
+                    print ListNames[iCounter] + ": " + StrXXX
                 Offset += len_
     iCounter += 1
-print Offset
 #----------------------------------------------------
 TriggerOffset = struct.unpack("H",fCon[22:24])[0]
-print TriggerOffset
 if TriggerOffset >= inFSize or TriggerOffset + 2 >= inFSize:
     print "Error reading trigger info"
 else:
