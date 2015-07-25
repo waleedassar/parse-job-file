@@ -49,12 +49,12 @@ def PrintGUID(CLSID):
     W2 = CLSID[8:10]
     W2_0 = (hex(ord(W2[0])))[2:]
     W2_1 = (hex(ord(W2[1])))[2:]
-    if len(W2_1) == 1:
-        sGuid += "0"
-    sGuid += W2_1
     if len(W2_0) == 1:
         sGuid += "0"
     sGuid += W2_0
+    if len(W2_1) == 1:
+        sGuid += "0"
+    sGuid += W2_1
     sGuid += "-"
     Last = CLSID[10:16]
     Last0 = (hex(ord(Last[0])))[2:]
