@@ -190,7 +190,7 @@ while iCounter < 5:
             print ListNames[iCounter] + ": N/A"
         else:
             if Offset + len_ >= inFSize:
-                print "Error reading " + ListNames[iCounter]
+                print "Boundary error while reading " + ListNames[iCounter]
             else:
                 uStrXXX = fCon[Offset:Offset + len_]
                 StrXXX = uStrXXX.decode('utf-16')
