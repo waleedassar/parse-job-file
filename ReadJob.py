@@ -116,8 +116,111 @@ def GetWeekDay(iWeekDay):
     elif iWeekDay == 7:
         return "Sun"
     return "N/A"
-    
-    
+
+def GetWeekDaysFromFlagBits(Flags):
+    Days = []
+    Flags = Flags & 0xFFFF
+    if Flags == 0:
+        return ""
+    if Flags & 0x200:
+        Days.append("Sat")
+    if Flags & 0x400:
+        Days.append("Fri")
+    if Flags & 0x800:
+        Days.append("Thu")
+    if Flags & 0x1000:
+        Days.append("Wedn")
+    if Flags & 0x2000:
+        Days.append("Tue")
+    if Flags & 0x4000:
+        Days.append("Mon")
+    if Flags & 0x8000:
+        Days.append("Sun")
+    NumDays = len(Days)
+    if NumDays == 0:
+        return ""
+    else:
+        r_Days = "("
+        for i in range(0,NumDays):
+            r_Days += Days[i]
+            if i != NumDays-1:
+                r_Days += "-"
+        r_Days += ")"
+        return r_Days
+    return ""
+
+def GetDayFromFlagBits(Flags):
+    Days = []
+    test = 1
+    for i in range(1,32):
+        NewTest = test << i
+        if Flags & NewTest != 0:
+            Days.append(i)
+    NumDays = len(Days)
+    if NumDays == 0:
+        return ""
+    else:
+        Dayss = "("
+        for ii in range(0,NumDays):
+            Dayss += Days[ii]
+            if ii != NumDays-1:
+                Dayss += ", "
+        Dayss += ")"
+        return Dayss
+    return ""
+
+def GetMonthFromFlagBits(Flags):
+    Months = []
+    if Flags & 0x10:
+        Months.append("Dec")
+    if Flags & 0x20:
+        Months.append("Nov")
+    if Flags & 0x40:
+        Months.append("Oct")
+    if Flags & 0x80:
+        Months.append("Sep")
+    if Flags & 0x100:
+        Months.append("Aug")
+    if Flags & 0x200:
+        Months.append("Jul")
+    if Flags & 0x400:
+        Months.append("Jun")
+    if Flags & 0x800:
+        Months.append("May")
+    if Flags & 0x1000:
+        Months.append("Apr")
+    if Flags & 0x2000:
+        Months.append("Mar")
+    if Flags & 0x4000:
+        Months.append("Feb")
+    if Flags & 0x8000:
+        Months.append("Jan")
+    NumMonths = len(Months)
+    if NumMonths == 0:
+        return ""
+    else:
+        Monthss = "("
+        for ii in range(0,NumMonths):
+            Monthss += Months[ii]
+            if ii != NumMonths-1:
+                Monthss += ", "
+        Monthss += ")"
+        return Monthss
+    return ""
+
+def GetLiteralWeekNumber(Number):
+    if Number == 1:
+        return "First"
+    elif Number == 2:
+        return "Second"
+    elif Number == 3:
+        return "Third"
+    elif Number == 4:
+        return "Fourth"
+    elif Number == 5:
+        return "Last"
+    return str(Number)+"th"
+        
 def PrintSystemTime(Time):
     if len(Time)!=16:
         print "Unknown time format"
@@ -206,10 +309,11 @@ while iCounter < 7:
                     print ListNames[iCounter] + ": " + StrXXX
                 Offset += len_
     iCounter += 1
-#----------------------------------------------------
+#-----------------------------------------------
+print "----------------Triggers----------------"
 TriggerOffset = struct.unpack("H",fCon[22:24])[0]
 if TriggerOffset >= inFSize or TriggerOffset + 2 >= inFSize:
-    print "Error reading trigger info"
+    print "Boundary error while reading trigger info"
 else:
     NumOfTriggers_s = fCon[TriggerOffset:TriggerOffset+2]
     NumOfTriggers = struct.unpack("H",NumOfTriggers_s)[0]
@@ -217,10 +321,11 @@ else:
     if NumOfTriggers == 0:
         print "Warning: no triggers were found"
     else:
+        print "Number Of Triggers: " + str(NumOfTriggers)
         #loop for reading triggers
         t = 0
         while TriggerOffset < inFSize:
-            print "Trigger #" + str(t+1)
+            print "===> Trigger #" + str(t+1)
             TriggerSize = struct.unpack("H",fCon[TriggerOffset:TriggerOffset+2])[0]
             print "TriggerSize: " + str(TriggerSize)
             if TriggerOffset + TriggerSize > inFSize:
@@ -229,6 +334,9 @@ else:
             else:
                 TriggerInfo = fCon[TriggerOffset:TriggerOffset+TriggerSize]
                 Resv0 = struct.unpack("H",TriggerInfo[2:4])[0]
+                print "Reserved1: " + str(hex(Resv0))
+                #if Resv0 != 0:
+                #    print "Warning: First reserved field of TRIGGER is not set to null"
                 BeginYear = struct.unpack("H",TriggerInfo[4:6])[0]
                 BeginMonth = struct.unpack("H",TriggerInfo[6:8])[0]
                 BeginDay = struct.unpack("H",TriggerInfo[8:10])[0]
@@ -277,11 +385,43 @@ else:
                 elif TriggerType == 7:
                     print "==> EVENT_AT_LOGON"
                 TriggerSpec0 = struct.unpack("H",TriggerInfo[36:38])[0]
+                if TriggerType == 1:
+                    print "Run every: " + str(TriggerSpec0) + " day(s)"
+                elif TriggerType == 2:
+                    print "Run every: " + str(TriggerSpec0) + " week(s)"
+                elif TriggerType == 3:
+                    pass
+                elif TriggerType == 4:
+                    print "In " + GetLiteralWeekNumber(TriggerSpec0) + " week"
+                else:
+                    print "TriggerSpecific0: " + str(hex(TriggerSpec0))
+                
                 TriggerSpec1 = struct.unpack("H",TriggerInfo[38:40])[0]
+                if TriggerType == 2:
+                    print "On " + GetWeekDaysFromFlagBits(TriggerSpec1)
+                elif TriggerType == 3:
+                    Day_s = TriggerInfo[36:40]
+                    Day_i = struct.unpack("L",Day_s)[0]
+                    print "On " + GetDayFromFlagBits(Day_i)
+                elif TriggerType == 4:
+                    print "On " + GetWeekDaysFromFlagBits(TriggerSpec1)
+                else:
+                    print "TriggerSpecific1: " + str(hex(TriggerSpec1))
+
                 TriggerSpec2 = struct.unpack("H",TriggerInfo[40:42])[0]
+                if TriggerType == 3:
+                    print "In " + GetMonthFromFlagBits(TriggerSpec2)
+                elif TriggerType == 4:
+                    print "In " + GetMonthFromFlagBits(TriggerSpec2)
+                else:
+                    print "TriggerSpecific2: " + str(hex(TriggerSpec2))
+                    
                 Padding = struct.unpack("H",TriggerInfo[42:44])[0]
+                print "Padding: " + str(hex(Padding))
                 Resv1 = struct.unpack("H",TriggerInfo[44:46])[0]
+                print "Reserved2: " + str(hex(Resv1))
                 Resv2 = struct.unpack("H",TriggerInfo[46:48])[0]
+                print "Reserved3: " + str(hex(Resv2))
                 TriggerOffset += TriggerSize
             t = t + 1
         
