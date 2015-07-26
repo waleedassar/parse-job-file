@@ -1,8 +1,8 @@
 import os,sys,time
 import struct
 
-
-#Takes in binary format and emits String Format
+    
+#Takes in binary format and emits String version
 def PrintGUID(CLSID):
     if len(CLSID)!=16:
         return "{invalid}"
@@ -424,7 +424,30 @@ else:
                 print "Reserved3: " + str(hex(Resv2))
                 TriggerOffset += TriggerSize
             t = t + 1
-        
+#----------------------------------------------------
+#Print job singature if exists
+print "------------ Job Signature ------------"
+JobSignOffset = TriggerOffset
+if JobSignOffset < inFSize:
+    if JobSignOffset + 68 <= inFSize:
+        JobSign = fCon[JobSignOffset:JobSignOffset+68]
+        SignatureVersion = struct.unpack("H",JobSign[0:2])[0]
+        t_str = "SignatureVersion: " + str(hex(SignatureVersion))
+        if SignatureVersion != 1:
+            t_str += "  (Warning: Must be 1)"
+        print t_str
+        MinClientVersion = struct.unpack("H",JobSign[2:4])[0]
+        t_str = "MinClientVersion: " + str(hex(MinClientVersion))
+        if MinClientVersion != 1:
+            t_str += "  (Warning: Must be 1)"
+        print t_str
+        Hash = JobSign[4:]
+        #Add code for printing hashes here
+    else:
+        print "Boundary error while reading Job Signature"
+else:
+    print "Job Signature: N/A"
+print "---------------------------------------"
 #----------------------------------------------------
 ErrorRetryCount = struct.unpack("H",fCon[24:26])[0]
 print "Error Retry Count: " + str(hex(ErrorRetryCount))
