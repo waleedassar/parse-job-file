@@ -511,7 +511,7 @@ print sFlags
 #-------------------------------------------------
 SystemTime = fCon[52:68]
 sSystemTime = PrintSystemTime(SystemTime)
-print sSystemTime
+print "Last Run Time: " + sSystemTime
 #-------------------------------------------------
 Instances = (struct.unpack("H",fCon[68:70]))[0]
 print "Number of instances: " + str(hex(Instances))
